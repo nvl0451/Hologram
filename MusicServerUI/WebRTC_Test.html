@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebRTC Stream Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        video {
+            width: 80%;
+            max-width: 800px;
+            border: 1px solid #ccc;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>WebRTC Stream Test</h1>
+    <video id="video" autoplay playsinline></video>
+    <br>
+    <button id="connectButton">Connect to Stream</button>
+
+    <script>
+        const videoElement = document.getElementById('video');
+        const connectButton = document.getElementById('connectButton');
+        let peerConnection;
+        let websocket;
+
+        // Configuration for the peer connection
+        const pcConfig = {
+            iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+        };
+
+        // Function to initialize the peer connection
+        function initPeerConnection() {
+            peerConnection = new RTCPeerConnection(pcConfig);
+
+            // Handle incoming video track
+            peerConnection.ontrack = (event) => {
+                if (event.track.kind === 'video') {
+                    videoElement.srcObject = event.streams[0];
+                }
+            };
+
+            // Handle ICE candidates
+            peerConnection.onicecandidate = (event) => {
+                if (event.candidate) {
+                    const candidateJson = JSON.stringify({
+                        type: 'candidate',
+                        candidate: event.candidate.candidate,
+                        sdpMid: event.candidate.sdpMid,
+                        sdpMLineIndex: event.candidate.sdpMLineIndex
+                    });
+                    websocket.send(candidateJson);
+                }
+            };
+        }
+
+        // Function to handle signaling messages
+        function handleSignalingMessage(message) {
+            const data = JSON.parse(message);
+            if (data.type === 'offer') {
+                peerConnection.setRemoteDescription(new RTCSessionDescription(data))
+                    .then(() => peerConnection.createAnswer())
+                    .then((answer) => peerConnection.setLocalDescription(answer))
+                    .then(() => {
+                        const answerJson = JSON.stringify({
+                            type: 'answer',
+                            sdp: peerConnection.localDescription.sdp
+                        });
+                        websocket.send(answerJson);
+                    })
+                    .catch((error) => console.error('Error handling offer:', error));
+            } else if (data.type === 'candidate') {
+                const candidate = new RTCIceCandidate({
+                    candidate: data.candidate,
+                    sdpMid: data.sdpMid,
+                    sdpMLineIndex: data.sdpMLineIndex
+                });
+                peerConnection.addIceCandidate(candidate)
+                    .catch((error) => console.error('Error adding ICE candidate:', error));
+            }
+        }
+
+        // Function to connect to the WebSocket server
+        function connectWebSocket() {
+            websocket = new WebSocket('ws://localhost:8888');
+            websocket.onopen = () => {
+                console.log('WebSocket connected');
+                // Create an offer to initiate the connection
+                peerConnection.createOffer()
+                    .then((offer) => peerConnection.setLocalDescription(offer))
+                    .then(() => {
+                        const offerJson = JSON.stringify({
+                            type: 'offer',
+                            sdp: peerConnection.localDescription.sdp
+                        });
+                        websocket.send(offerJson);
+                    })
+                    .catch((error) => console.error('Error creating offer:', error));
+            };
+            websocket.onmessage = (event) => {
+                handleSignalingMessage(event.data);
+            };
+            websocket.onerror = (error) => {
+                console.error('WebSocket error:', error);
+            };
+            websocket.onclose = () => {
+                console.log('WebSocket closed');
+            };
+        }
+
+        // Event listener for the connect button
+        connectButton.addEventListener('click', () => {
+            initPeerConnection();
+            connectWebSocket();
+        });
+    </script>
+</body>
+</html>

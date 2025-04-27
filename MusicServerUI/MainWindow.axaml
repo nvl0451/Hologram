@@ -1,0 +1,161 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:MusicServerUI"
+        x:Class="MusicServerUI.MainWindow"
+        Title="Hologram Server"
+        SizeToContent="WidthAndHeight"
+        Background="Black">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Toggle Buttons -->
+        <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="5">
+            <ToggleButton Name="ToggleMusicStreamer" Width="40" Height="40" IsChecked="True" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+                <TextBlock Text="🎵" FontSize="22" HorizontalAlignment="Center" VerticalAlignment="Center" />
+            </ToggleButton>
+            <ToggleButton Name="ToggleChat" Width="40" Height="40" IsChecked="True" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+                <TextBlock Text="💬" FontSize="22" HorizontalAlignment="Center" VerticalAlignment="Center" />
+            </ToggleButton>
+            <ToggleButton Name="ToggleHologram" Width="40" Height="40" IsChecked="True" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+                <TextBlock Text="👤" FontSize="22" HorizontalAlignment="Center" VerticalAlignment="Center" />
+            </ToggleButton>
+        </StackPanel>
+
+        <!-- Main Content -->
+        <Grid Grid.Row="1" Name="MainContentGrid">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Music Streamer Grid -->
+            <Grid Name="MusicStreamerGrid" Grid.Column="0" Opacity="1" Margin="0,0,0,0" ClipToBounds="False">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="0" /> <!-- Song picker column, initially hidden -->
+                    <ColumnDefinition Width="*" /> <!-- Player content -->
+                </Grid.ColumnDefinitions>
+
+                <!-- Song Picker Drawer -->
+                <Border Name="SongPickerBorder" Background="LightGray" Grid.Column="0" HorizontalAlignment="Left" Width="100" IsVisible="False">
+                    <Border.RenderTransform>
+                        <TranslateTransform X="0" />
+                    </Border.RenderTransform>
+                    <ScrollViewer VerticalAlignment="Stretch">
+                        <ListBox Name="SongListBox" Margin="0" VerticalAlignment="Stretch" />
+                    </ScrollViewer>
+                </Border>
+
+                <!-- Player Content -->
+                <Grid Grid.Column="1" Margin="10,0,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <!-- Menu Button -->
+                    <Button Name="MenuButton" Content="☰" Width="40" Height="40" HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Row="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" FontSize="24" />
+
+                    <!-- Player Content -->
+                    <StackPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <!-- Album Artwork -->
+                        <Border Background="Gray" Width="200" Height="200" HorizontalAlignment="Center" Margin="0,0,0,20">
+                            <TextBlock Text="🎵" FontSize="100" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+
+                        <!-- Song Title -->
+                        <TextBlock Name="SongLabel" Text="Select a song to play" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,10" Foreground="White" />
+
+                        <!-- Time Slider -->
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="50" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="50" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Name="CurrentTimeLabel" Text="0:00" Grid.Column="0" TextAlignment="Right" Foreground="White" />
+                            <Slider Name="ProgressSlider" Minimum="0" Grid.Column="1" />
+                            <TextBlock Name="TotalDurationLabel" Text="0:00" Grid.Column="2" Foreground="White" />
+                        </Grid>
+
+                        <!-- Control Buttons -->
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,0,0">
+                            <Button Name="PreviousButton" Content="⏮" Width="50" Height="50" FontSize="24" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+                            <Button Name="PlayPauseButton" Content="▶" Width="60" Height="60" FontSize="30" Margin="20,0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+                            <Button Name="NextButton" Content="⏭" Width="50" Height="50" FontSize="24" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+                        </StackPanel>
+
+                        <!-- Volume Slider -->
+                        <Grid Margin="0,20,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="50" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="50" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Name="VolumePercentageLabel" Text="100%" Grid.Column="0" TextAlignment="Right" Foreground="White" />
+                            <Slider Name="VolumeSlider" Minimum="0" Maximum="150" Value="100" Grid.Column="1" />
+                            <TextBlock Text="150%" Grid.Column="2" Foreground="White" />
+                        </Grid>
+                    </StackPanel>
+                </Grid>
+
+                <Grid.Styles>
+                    <Style Selector="Button">
+                        <Setter Property="Background" Value="Transparent" />
+                        <Setter Property="Foreground" Value="White" />
+                    </Style>
+                    <Style Selector="Button:pointerover /template/ ContentPresenter">
+                        <Setter Property="Background" Value="#30FFFFFF" />
+                    </Style>
+                </Grid.Styles>
+            </Grid>
+
+            <!-- Chat Grid -->
+            <Grid Name="ChatGrid" Grid.Column="1" Opacity="1" Margin="0,0,0,0">
+                <StackPanel Margin="30,10,20,10">
+                    <TextBlock Name="ChatLabel" Text="Chat" Foreground="White" />
+                    <ListBox Name="ChatListBox" Height="400">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="local:MessageViewModel">
+                                <TextBlock Foreground="White">
+                                    <Run Text="{Binding Message.Username}" />
+                                    <Run Text=": " />
+                                    <Run Text="{Binding Message.Text}" />
+                                </TextBlock>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                        <ListBox.Styles>
+                            <Style Selector="ListBoxItem">
+                                <Setter Property="ContextMenu">
+                                    <ContextMenu x:DataType="local:MessageViewModel">
+                                        <MenuItem Header="Delete" Click="OnDeleteClicked" />
+                                        <MenuItem Header="{Binding MuteHeader}" IsVisible="{Binding CanMute}" Click="OnMuteUnmuteClicked" />
+                                    </ContextMenu>
+                                </Setter>
+                            </Style>
+                        </ListBox.Styles>
+                    </ListBox>
+                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                        <TextBox Name="ChatInputTextBox" Width="160" KeyDown="OnTextBoxKeyDown" AcceptsReturn="False" Margin="0,0,5,0" />
+                        <Button Content="Send" Click="OnSendButtonClicked" />
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+
+            <!-- Hologram Grid -->
+            <Grid Name="HologramGrid" Grid.Column="2" Opacity="1" Margin="0,0,0,0">
+                <StackPanel Margin="10">
+                    <TextBlock Text="Hologram Controls" Margin="0,0,0,5" Foreground="White" />
+                    <TextBlock Name="KinectStatusLabel" Text="Kinect: MIA" Margin="0,0,0,5" />
+                    <TextBlock Name="MobileStatusLabel" Text="Mobile: MIA" Margin="0,0,0,5" />
+                    <Button Name="LockTPoseButton" Content="Lock T-Pose" Margin="0,0,0,5" />
+                    <TextBlock Text="Select Skin" Margin="0,0,0,5" Foreground="White" />
+                    <ListBox Name="SkinListBox" SelectionMode="Single" />
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>
